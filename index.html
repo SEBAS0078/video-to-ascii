@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ASCII Camera</title>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <script src="libraries/p5.min.js"></script>
+    <script src="libraries/p5.sound.min.js"></script>
+    <script src="libraries/gif.js"></script>
+  </head>
+
+  <body>
+
+    <button id="toggleControlsBtn" title="Show/hide controls">☰</button>
+
+    <div id="controls">
+
+      <details open>
+        <summary>Source</summary>
+
+        <div class="field">
+          <label for="sourceSelect">Input</label>
+          <select id="sourceSelect">
+            <option value="webcam">Webcam</option>
+            <option value="image">Uploaded Image</option>
+            <option value="video">Uploaded Video</option>
+            <option value="text">Text Banner</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="imageFileInput">Image file</label>
+          <input type="file" id="imageFileInput" accept="image/*">
+        </div>
+
+        <div class="field">
+          <label for="videoFileInput">Video file</label>
+          <input type="file" id="videoFileInput" accept="video/*">
+        </div>
+
+        <div id="bannerControlsGroup">
+
+          <div class="field">
+            <label for="bannerTextInput">Banner text</label>
+            <input type="text" id="bannerTextInput" value="HELLO" maxlength="40">
+          </div>
+
+          <div class="field">
+            <label for="bannerFontSelect">Banner font</label>
+            <select id="bannerFontSelect">
+              <option value="Arial">Arial</option>
+              <option value="Arial Black">Arial Black</option>
+              <option value="Impact">Impact</option>
+              <option value="Georgia">Georgia</option>
+              <option value="'Comic Sans MS'">Comic Sans</option>
+              <option value="'Courier New'">Courier New</option>
+              <option value="'Times New Roman'">Times New Roman</option>
+            </select>
+          </div>
+
+          <div class="checkbox-row">
+            <label class="checkbox-field"><input type="checkbox" id="bannerBoldCheckbox" checked><span>Bold</span></label>
+            <label class="checkbox-field"><input type="checkbox" id="bannerOutlineCheckbox"><span>Outline</span></label>
+          </div>
+
+          <div class="field">
+            <label for="bannerAnimationSelect">Animation</label>
+            <select id="bannerAnimationSelect">
+              <option value="none">None</option>
+              <option value="scroll">Scroll</option>
+              <option value="pulse">Pulse</option>
+              <option value="wave">Wave</option>
+              <option value="typewriter">Typewriter</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="bannerAnimSpeedSlider">Animation speed</label>
+            <div class="field-control">
+              <input type="range" id="bannerAnimSpeedSlider" min="0.2" max="3" step="0.1" value="1">
+              <span class="field-value" id="bannerAnimSpeedValue">1</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div id="dropHint">Drag &amp; drop an image or video anywhere</div>
+      </details>
+
+      <details open>
+        <summary>Characters &amp; Density</summary>
+
+        <div class="field">
+          <label for="modeSelect">Render mode</label>
+          <select id="modeSelect">
+            <option value="normal">Normal</option>
+            <option value="edge">Edge</option>
+            <option value="emoji">Emoji</option>
+            <option value="binary">Binary</option>
+            <option value="braille">Braille</option>
+            <option value="halfblock">Half-block</option>
+            <option value="matrix">Matrix</option>
+            <option value="ansi">ANSI Terminal</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="densitySelect">Density preset</label>
+          <select id="densitySelect">
+            <option value="█▓▒░ ">Blocks</option>
+            <option value="Ñ@#W$9876543210?!abc;:+=-,.- ">Classic</option>
+            <option value="●○•· ">Circles</option>
+            <option value="10 ">Binary</option>
+            <option value="|:+=-,.- ">Lines</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="densityInput">Custom density (dark → light)</label>
+          <input type="text" id="densityInput" value="█▓▒░ ">
+        </div>
+
+        <div class="checkbox-row">
+          <label class="checkbox-field"><input type="checkbox" id="reverseDensityCheckbox" checked><span>Reverse</span></label>
+          <button id="randomizeDensityBtn" type="button" class="btn-ghost">Randomize</button>
+        </div>
+      </details>
+
+      <details open>
+        <summary>Color</summary>
+
+        <div class="field">
+          <label for="colorSourceSelect">Color source</label>
+          <select id="colorSourceSelect">
+            <option value="grayscale">Grayscale</option>
+            <option value="color">Full Color</option>
+            <option value="solid">Solid Color</option>
+            <option value="gradient">Gradient</option>
+            <option value="hue">Hue-based</option>
+            <option value="green">Green Terminal</option>
+            <option value="amber">Amber Terminal</option>
+            <option value="blue">Blue Terminal</option>
+            <option value="rainbow">Rainbow</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="backgroundColorPicker">Background color</label>
+          <input type="color" id="backgroundColorPicker" value="#000000">
+        </div>
+
+        <div id="solidColorGroup" class="field">
+          <label for="solidColorPicker">Solid color</label>
+          <input type="color" id="solidColorPicker" value="#00ff00">
+        </div>
+
+        <div id="gradientColorGroup" class="field">
+          <label>Gradient colors</label>
+          <div class="swatch-row">
+            <input type="color" id="gradientColor1Picker" value="#1a0033">
+            <input type="color" id="gradientColor2Picker" value="#ff3366">
+            <input type="color" id="gradientColor3Picker" value="#ffcc00">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="grayscaleMethodSelect">Grayscale method</label>
+          <select id="grayscaleMethodSelect">
+            <option value="perceptual">Perceptual</option>
+            <option value="average">Average RGB</option>
+            <option value="red">Red channel</option>
+            <option value="green">Green channel</option>
+            <option value="blue">Blue channel</option>
+          </select>
+        </div>
+
+        <label class="checkbox-field"><input type="checkbox" id="hueBasedCheckbox"><span>Hue-based</span></label>
+      </details>
+
+      <details open>
+        <summary>Size &amp; Font</summary>
+
+        <div class="field">
+          <label for="resolutionSlider">Resolution</label>
+          <div class="field-control">
+            <input type="range" id="resolutionSlider" min="50" max="250" value="200">
+            <span class="field-value" id="resolutionValue">200</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="aspectSlider">Aspect ratio</label>
+          <div class="field-control">
+            <input type="range" id="aspectSlider" min="0.2" max="1" step="0.05" value="0.5">
+            <span class="field-value" id="aspectValue">0.5</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="charSizeSlider">Character size (px)</label>
+          <div class="field-control">
+            <input type="range" id="charSizeSlider" min="4" max="24" value="8">
+            <span class="field-value" id="charSizeValue">8</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="fpsSlider">FPS</label>
+          <div class="field-control">
+            <input type="range" id="fpsSlider" min="1" max="30" value="12">
+            <span class="field-value" id="fpsValue">12</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="fontSelect">Output font</label>
+          <select id="fontSelect">
+            <option value="'Courier New', monospace">Courier New</option>
+            <option value="Consolas, monospace">Consolas</option>
+            <option value="'Lucida Console', monospace">Lucida Console</option>
+            <option value="Menlo, Monaco, monospace">Menlo / Monaco</option>
+            <option value="monospace">Generic Monospace</option>
+          </select>
+        </div>
+      </details>
+
+      <details>
+        <summary>Effects</summary>
+
+        <div class="field">
+          <label for="brightnessSlider">Brightness</label>
+          <div class="field-control">
+            <input type="range" id="brightnessSlider" min="-100" max="100" value="0">
+            <span class="field-value" id="brightnessValue">0</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="contrastSlider">Contrast</label>
+          <div class="field-control">
+            <input type="range" id="contrastSlider" min="0" max="3" step="0.1" value="1">
+            <span class="field-value" id="contrastValue">1</span>
+          </div>
+        </div>
+
+        <label class="checkbox-field"><input type="checkbox" id="invertCheckbox"><span>Invert</span></label>
+
+        <div class="field">
+          <label class="checkbox-field" for="thresholdCheckbox"><input type="checkbox" id="thresholdCheckbox"><span>Threshold</span></label>
+          <div class="field-control">
+            <input type="range" id="thresholdSlider" min="0" max="255" value="128">
+            <span class="field-value" id="thresholdValue">128</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="posterizeSlider">Posterize levels (0=off)</label>
+          <div class="field-control">
+            <input type="range" id="posterizeSlider" min="0" max="8" value="0">
+            <span class="field-value" id="posterizeValue">0</span>
+          </div>
+        </div>
+
+        <label class="checkbox-field"><input type="checkbox" id="edgeDetectionCheckbox"><span>Edge detection</span></label>
+
+        <div class="field">
+          <label for="ditherSelect">Dithering</label>
+          <select id="ditherSelect">
+            <option value="none">None</option>
+            <option value="ordered">Ordered (Bayer)</option>
+            <option value="floyd">Floyd-Steinberg</option>
+          </select>
+        </div>
+        <div class="hint">Applies to Normal/Edge/Binary/Emoji/ANSI and Braille modes.</div>
+
+        <div class="field">
+          <label for="pixelationSlider">Pixelation</label>
+          <div class="field-control">
+            <input type="range" id="pixelationSlider" min="1" max="20" value="1">
+            <span class="field-value" id="pixelationValue">1</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="blurSlider">Blur</label>
+          <div class="field-control">
+            <input type="range" id="blurSlider" min="0" max="8" step="0.5" value="0">
+            <span class="field-value" id="blurValue">0</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="sharpenSlider">Sharpen</label>
+          <div class="field-control">
+            <input type="range" id="sharpenSlider" min="0" max="3" step="0.1" value="0">
+            <span class="field-value" id="sharpenValue">0</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="checkbox-field" for="trailCheckbox"><input type="checkbox" id="trailCheckbox"><span>Motion trail</span></label>
+          <div class="field-control">
+            <input type="range" id="trailAmountSlider" min="0.02" max="0.6" step="0.01" value="0.15">
+            <span class="field-value" id="trailAmountValue">0.15</span>
+          </div>
+        </div>
+
+        <label class="checkbox-field"><input type="checkbox" id="mirrorCheckbox" checked><span>Mirror</span></label>
+      </details>
+
+      <details>
+        <summary>Audio Reactive</summary>
+
+        <label class="checkbox-field"><input type="checkbox" id="audioReactiveCheckbox"><span>Enable microphone reactivity</span></label>
+        <div class="hint">Pulses brightness and canvas zoom with mic volume in Normal/Braille/Half-block modes. Asks for microphone permission.</div>
+
+        <div class="field">
+          <label for="audioSensitivitySlider">Sensitivity</label>
+          <div class="field-control">
+            <input type="range" id="audioSensitivitySlider" min="0.2" max="3" step="0.1" value="1">
+            <span class="field-value" id="audioSensitivityValue">1</span>
+          </div>
+        </div>
+      </details>
+
+      <details open>
+        <summary>Actions</summary>
+
+        <div class="btn-row">
+          <button id="screenshotBtn" type="button" class="btn">Screenshot</button>
+          <button id="copyBtn" type="button" class="btn">Copy to clipboard</button>
+          <button id="downloadBtn" type="button" class="btn">Download .txt</button>
+        </div>
+
+        <button id="recordBtn" type="button" class="btn btn-block">Record ASCII video</button>
+        <div class="hint">Records the ASCII render as a video. With an uploaded video source, it auto-stops and downloads after one full playthrough.</div>
+
+        <button id="gifBtn" type="button" class="btn btn-block">Record GIF</button>
+        <div class="hint">Captures up to 8 seconds of the ASCII render as an animated GIF, or click again to stop early.</div>
+
+        <div class="btn-row">
+          <button id="fullscreenBtn" type="button" class="btn">Fullscreen</button>
+          <button id="pauseBtn" type="button" class="btn">Pause</button>
+        </div>
+
+        <button id="resetBtn" type="button" class="btn btn-block btn-danger">Reset all settings</button>
+      </details>
+
+    </div>
+
+    <div id="outputWrapper"></div>
+
+    <script src="sketch.js"></script>
+
+  </body>
+</html>
