@@ -490,10 +490,19 @@ img:hover {
     border-top: 1px solid var(--panel-border);
     box-sizing: border-box;
     transition: none;
+    display: flex;
+    flex-direction: column;
   }
 
   #controls.hidden {
     display: none;
+  }
+
+  /* Screenshot/record/etc. are the buttons phone users reach for first -
+     surface them right under the canvas instead of at the bottom of a
+     long settings scroll. */
+  #actionsDetails {
+    order: -1;
   }
 
   #toggleControlsBtn {
