@@ -1215,6 +1215,25 @@ function regenerateTextBanner() {
 }
 
 
+// Matches the output grid's aspect ratio to the source media's native
+// aspect ratio, correcting for the character cell's width multiplier (see
+// computeCanvasW/H) so the rendered ASCII doesn't look stretched/squashed.
+function applyNativeAspectRatio(mediaW, mediaH) {
+
+  if (!mediaW || !mediaH) return;
+
+  aspectRatio = constrain(0.6 * (mediaH / mediaW), 0.2, 1);
+  rows = Math.max(1, Math.floor(cols * aspectRatio));
+
+  if (uiRefs.aspectSlider) {
+    uiRefs.aspectSlider.value = aspectRatio;
+    uiRefs.aspectValue.textContent = aspectRatio.toFixed(2);
+  }
+
+  resizeMainCanvas();
+}
+
+
 function loadImageFile(file) {
 
   const url = URL.createObjectURL(file);
@@ -1224,6 +1243,7 @@ function loadImageFile(file) {
     switchSource('image');
     if (uiRefs.sourceSelect) uiRefs.sourceSelect.value = 'image';
     updateSourceUI();
+    applyNativeAspectRatio(img.width, img.height);
   });
 }
 
@@ -1240,6 +1260,7 @@ function loadVideoFileObj(file) {
   uploadedVideo = createVideo(url, () => {
     uploadedVideo.loop();
     uploadedVideo.volume(0);
+    applyNativeAspectRatio(uploadedVideo.elt.videoWidth, uploadedVideo.elt.videoHeight);
   });
   uploadedVideo.hide();
 
@@ -1253,6 +1274,10 @@ function updateSourceUI() {
   if (uiRefs.imageFileInput) uiRefs.imageFileInput.closest('.field').style.display = mediaSource === 'image' ? '' : 'none';
   if (uiRefs.videoFileInput) uiRefs.videoFileInput.closest('.field').style.display = mediaSource === 'video' ? '' : 'none';
   if (uiRefs.bannerControlsGroup) uiRefs.bannerControlsGroup.style.display = mediaSource === 'text' ? '' : 'none';
+
+  const aspectLocked = mediaSource === 'image' || mediaSource === 'video';
+  if (uiRefs.aspectSlider) uiRefs.aspectSlider.disabled = aspectLocked;
+  if (uiRefs.aspectLockHint) uiRefs.aspectLockHint.style.display = aspectLocked ? '' : 'none';
 }
 
 
@@ -1453,6 +1478,7 @@ function setupControls() {
     resolutionValue: $('resolutionValue'),
     aspectSlider: $('aspectSlider'),
     aspectValue: $('aspectValue'),
+    aspectLockHint: $('aspectLockHint'),
     charSizeSlider: $('charSizeSlider'),
     charSizeValue: $('charSizeValue'),
     fpsSlider: $('fpsSlider'),
