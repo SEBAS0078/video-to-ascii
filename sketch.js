@@ -5,6 +5,7 @@
 let mediaSource = 'webcam'; // 'webcam' | 'image' | 'video'
 let capture, uploadedImage, uploadedVideo;
 let currentMedia = null;
+let cameraFacing = 'user'; // 'user' (front/selfie) | 'environment' (back)
 
 let cols = 200;
 let aspectRatio = 0.5;
@@ -1103,24 +1104,57 @@ function updateModeVisibility() {
 // Source switching
 // =========================================================
 
+function startCapture() {
+  capture = createCapture({ video: { facingMode: cameraFacing }, audio: false });
+  capture.size(640, 480);
+  capture.hide();
+}
+
+
+function stopCapture() {
+  if (!capture) return;
+  if (capture.elt && capture.elt.srcObject) {
+    capture.elt.srcObject.getTracks().forEach((track) => track.stop());
+  }
+  capture.remove();
+  capture = null;
+}
+
+
+// Restarts the webcam stream on the other camera (front/back), where
+// available. facingMode is a *preference*, not a hard requirement, so this
+// degrades gracefully (falls back to whatever camera exists) on devices
+// with only one.
+function flipCamera() {
+
+  if (mediaSource !== 'webcam') return;
+
+  cameraFacing = cameraFacing === 'user' ? 'environment' : 'user';
+
+  // The rear camera isn't a "mirror" the way a selfie camera is.
+  mirror = cameraFacing === 'user';
+  if (uiRefs.mirrorCheckbox) uiRefs.mirrorCheckbox.checked = mirror;
+
+  stopCapture();
+  startCapture();
+  currentMedia = capture;
+}
+
+
 function switchSource(newSource) {
 
   if (isRecording) stopRecording();
 
   mediaSource = newSource;
 
-  // Mirroring makes sense for the webcam (like a real mirror); uploaded
-  // media and the text banner should show as given by default.
-  mirror = newSource === 'webcam';
+  // Mirroring makes sense for the front/selfie camera (like a real mirror);
+  // the rear camera and uploaded media should show as given by default.
+  mirror = newSource === 'webcam' && cameraFacing === 'user';
   if (uiRefs.mirrorCheckbox) uiRefs.mirrorCheckbox.checked = mirror;
 
   if (newSource === 'webcam') {
 
-    if (!capture) {
-      capture = createCapture(VIDEO);
-      capture.size(640, 480);
-      capture.hide();
-    }
+    if (!capture) startCapture();
     currentMedia = capture;
 
   } else if (newSource === 'image') {
@@ -1271,6 +1305,7 @@ function loadVideoFileObj(file) {
 
 
 function updateSourceUI() {
+  if (uiRefs.webcamControlsGroup) uiRefs.webcamControlsGroup.style.display = mediaSource === 'webcam' ? '' : 'none';
   if (uiRefs.imageFileInput) uiRefs.imageFileInput.closest('.field').style.display = mediaSource === 'image' ? '' : 'none';
   if (uiRefs.videoFileInput) uiRefs.videoFileInput.closest('.field').style.display = mediaSource === 'video' ? '' : 'none';
   if (uiRefs.bannerControlsGroup) uiRefs.bannerControlsGroup.style.display = mediaSource === 'text' ? '' : 'none';
@@ -1376,6 +1411,9 @@ function resetAll() {
   disableAudio();
   if (isGifRecording) stopGifCapture();
 
+  if (cameraFacing !== 'user') stopCapture();
+  cameraFacing = 'user';
+
   syncUIFromState();
   applyFontAndSize();
   applyBackgroundColor();
@@ -1384,6 +1422,7 @@ function resetAll() {
   setupMatrixCols();
   regenerateTextBanner();
   switchSource('webcam');
+  updateSourceUI();
 }
 
 
@@ -1464,6 +1503,8 @@ function setupControls() {
 
   uiRefs = {
     sourceSelect: $('sourceSelect'),
+    webcamControlsGroup: $('webcamControlsGroup'),
+    flipCameraBtn: $('flipCameraBtn'),
     imageFileInput: $('imageFileInput'),
     videoFileInput: $('videoFileInput'),
     bannerTextInput: $('bannerTextInput'),
@@ -1553,6 +1594,10 @@ function setupControls() {
     const val = u.sourceSelect.value;
     switchSource(val);
     updateSourceUI();
+  });
+
+  u.flipCameraBtn.addEventListener('click', () => {
+    flipCamera();
   });
 
   u.imageFileInput.addEventListener('change', (e) => {
